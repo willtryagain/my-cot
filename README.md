@@ -1,6 +1,5 @@
 # Anki-COT 
-A hand-written tool to capture *your* chain-of-thoughts in response to complex Anki prompts. 
-
+A hand-written tool to capture *your* chain-of-thoughts in response to complex [Anki](https://en.wikipedia.org/wiki/Anki_(software)) prompts. 
 
 ## Motivation
 Anki decks can contain complex and broad questions. I prefer them over cloze deletions as they are easy to add, and are more realistic to questions which I encounter frequently. 
@@ -11,7 +10,15 @@ This will allow to compare the accuracy of the final answer, and also capture if
 
 Hopefully, it would be more fun to power through your decks. 
 
-## Technical specification
+
+## Getting Started 
+```
+python src/main.py 
+```
+* Skip question using Ctrl C
+* Quit after pressing q after answering and scoring the question.
+
+## Technical specificationfeel
 It will read the TSV exported Anki deck. This will be populated to a local database.
 The backend will be in FastAPI. 
 The tool will be a CLI and eventually also offer a simple web interface.
@@ -30,7 +37,10 @@ The tool would also allow to run async evaluation of answers by LLM judges, supp
 <think>
 1. git init
 2. gh auth
-3.  gh repo create my-cot --private
-4. 
-<answer>
+3. gh repo create my-cot --private
+4. git add .
+5. git commit -m "spec confirm"
+6.  
+...
+<think>
 ```
