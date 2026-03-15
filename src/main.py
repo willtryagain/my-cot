@@ -3,11 +3,10 @@ from datetime import datetime
 import json
 import os 
 import signal 
-import random
 import argparse
 
 import json
-import urllib.request
+from anki_iterators import card_stream
 
 instruction = """
 First describe what aspects of the question are you answering,
@@ -19,34 +18,16 @@ def handler(signum, frame):
     print("close after answering! by entering q")
 signal.signal(signal.SIGTSTP, handler)
 
-def request(action, **params):
-    return {'action': action, 'params': params, 'version': 6}
-
-def invoke(action, **params):
-    requestJson = json.dumps(request(action, **params)).encode('utf-8')
-    response = json.load(urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8765', requestJson)))
-    if len(response) != 2:
-        raise Exception('response has an unexpected number of fields')
-    if 'error' not in response:
-        raise Exception('response is missing required error field')
-    if 'result' not in response:
-        raise Exception('response is missing required result field')
-    if response['error'] is not None:
-        raise Exception(response['error'])
-    return response['result']
-
-def iter_anki_connect():
-    while True:
-        result = invoke('guiCurrentCard')
-        yield result['cardId'], result['fields']['Front']['value'], result['fields']['Back']['value']
-
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", help="path to the tsv Anki file", default='/home/a/Downloads/python.txt')
+    parser.add_argument("--path", help="path to the tsv Anki file", default='/home/a/Downloads/python.txt')
     parser.add_argument("--out", help="save session as JSONL", default="session.jsonl")
+    parser.add_argument("--source", help="determine what source of question", default="anki", choices=['anki', 'file'])
+
+
     args = parser.parse_args()
-    for card_id, question, solution in iter_anki_connect(): #iter_anki_temp(args.input):
-        print(f"\n{instruction} \n\nquestion>{question}")
+    for card in card_stream(source=args.source, path=args.path):
+        print(f"\n{instruction} \n\nquestion>{card.question}")
         thoughts = []
         print("\n<thought> (end with empty line)")
         try: 
@@ -64,13 +45,12 @@ def main():
             print("\n</thought>")
         answer = input("<answer>")        
         print("</answer>")
-        print(f"<solution>{solution}</solution>")
-        
+        print(f"<solution>{card.solution}</solution>")
         score = input("< = > ?")
         session = {
-            "card_id": card_id,
-            "question": question,
-            "solution": solution,
+            "card_id": card.id,
+            "question": card.question,
+            "solution": card.solution,
             "answer": answer,
             "score": score,
             "timestamp": datetime.now().isoformat(),
